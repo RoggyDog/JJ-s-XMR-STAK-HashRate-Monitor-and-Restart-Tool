@@ -213,7 +213,7 @@ function reset-VideoCard {
 	Write-host "Resetting Video Card(s)..."
 	$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
 	log-Write ("$timeStamp	$ver	Running Video Card Reset")
-	$d = Get-PnpDevice| where {$_.friendlyname -like 'Radeon RX Vega'}
+	$d = Get-PnpDevice| where {$_.friendlyname -like 'Radeon RX Vega' -Or $_.friendlyname -like 'Radeon Vega Frontier Edition'}
 	$vCTR = 0
 	foreach ($dev in $d) {
 		$vCTR = $vCTR + 1
@@ -678,7 +678,10 @@ Function refresh-Screen
 	Write-host -fore Green `nPool Difficulty: $global:currDiff
 	Write-host -fore Green `nTotal Shares: $global:TotalShares
 	Write-host -fore Green `nGood Shares:	$global:GoodShares
-	Write-host -fore Green `nGood Shares %:	(($global:GoodShares / $global:TotalShares) * 100)
+	If ($global:TotalShares -ne '0')
+	{
+		Write-host -fore Green `nGood Shares %:	(($global:GoodShares / $global:TotalShares) * 100)
+	}
 	Write-host -fore Green `nShare Time:	$global:TimeShares
 	#Write-Host "=================================================="
 }
