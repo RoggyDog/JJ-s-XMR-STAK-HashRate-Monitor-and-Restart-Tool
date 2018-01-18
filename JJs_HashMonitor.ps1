@@ -158,6 +158,9 @@ $timeout = 60			# (STARTUP ONLY)How long to wait for STAK to
 $STAKstable = 120		# How long to wait for the hashrate to stabilize.
 #
 #########################################################################
+$global:minHash = 6850  # STAK will restart if your rig doesn't
+#                         reach this hash rate
+#########################################################################
 ###################### END USER DEFINED VARIABLES #######################
 #################### MAKE NO CHANGES BELOW THIS LINE ####################
 
@@ -213,7 +216,7 @@ function reset-VideoCard {
 	Write-host "Resetting Video Card(s)..."
 	$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
 	log-Write ("$timeStamp	$ver	Running Video Card Reset")
-	$d = Get-PnpDevice| where {$_.friendlyname -like 'Radeon RX Vega'}
+	$d = Get-PnpDevice| where {$_.friendlyname -like 'Radeon RX Vega' -Or $_.friendlyname -like 'Radeon Vega Frontier Edition'}
 	$vCTR = 0
 	foreach ($dev in $d) {
 		$vCTR = $vCTR + 1
@@ -420,6 +423,22 @@ function starting-Hash
 				call-Self
 				Exit
 			}
+			ElseIf ($global:currTestHash -gt 0 -And $global:currTestHash -lt $global:minHash)
+		    	{
+				Clear-Host
+				Write-host -fore Red "`nSTAK hasn't met minimum hash expectations"
+				Write-host -fore Red "`nCurrent Hash =  $global:currTestHash H/s, minimum needs to be $global:minHash H/s"
+				Write-host -fore Red "Restarting in 10 seconds"
+				$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
+				log-Write ("$timeStamp	$ver	Hash Mon Phase: STAK hasn't met minimum hash expectations. Current Hash =  $global:currTestHash , minimum Hash =  $global:minHash")
+				Start-Sleep -s 10
+				$flag = "False"
+				#Break
+				$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
+				log-Write ("$timeStamp	$ver	=== Script Ended ===")
+				call-Self
+				Exit
+		    	}
 			If (!$startTestHash)
 			{
 				$startTestHash = $global:currTestHash
@@ -678,7 +697,10 @@ Function refresh-Screen
 	Write-host -fore Green `nPool Difficulty: $global:currDiff
 	Write-host -fore Green `nTotal Shares: $global:TotalShares
 	Write-host -fore Green `nGood Shares:	$global:GoodShares
-	Write-host -fore Green `nGood Shares %:	(($global:GoodShares / $global:TotalShares) * 100)
+	If ($global:TotalShares -ne '0')
+	{
+		Write-host -fore Green `nGood Shares %:	(($global:GoodShares / $global:TotalShares) * 100)
+	}
 	Write-host -fore Green `nShare Time:	$global:TimeShares
 	#Write-Host "=================================================="
 }
