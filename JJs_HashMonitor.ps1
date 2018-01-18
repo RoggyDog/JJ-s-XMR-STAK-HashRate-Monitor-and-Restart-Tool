@@ -158,6 +158,9 @@ $timeout = 60			# (STARTUP ONLY)How long to wait for STAK to
 $STAKstable = 120		# How long to wait for the hashrate to stabilize.
 #
 #########################################################################
+$global:minHash = 6850  # STAK will restart if your rig doesn't
+#                         reach this hash rate
+#########################################################################
 ###################### END USER DEFINED VARIABLES #######################
 #################### MAKE NO CHANGES BELOW THIS LINE ####################
 
@@ -420,6 +423,22 @@ function starting-Hash
 				call-Self
 				Exit
 			}
+			ElseIf ($global:currTestHash -gt 0 -And $global:currTestHash -lt $global:minHash)
+		    	{
+				Clear-Host
+				Write-host -fore Red "`nSTAK hasn't met minimum hash expectations"
+				Write-host -fore Red "`nCurrent Hash =  $global:currTestHash H/s, minimum needs to be $global:minHash H/s"
+				Write-host -fore Red "Restarting in 10 seconds"
+				$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
+				log-Write ("$timeStamp	$ver	Hash Mon Phase: STAK hasn't met minimum hash expectations. Current Hash =  $global:currTestHash , minimum Hash =  $global:minHash")
+				Start-Sleep -s 10
+				$flag = "False"
+				#Break
+				$timeStamp = "{0:yyyy-MM-dd_HH:mm}" -f (Get-Date)
+				log-Write ("$timeStamp	$ver	=== Script Ended ===")
+				call-Self
+				Exit
+		    	}
 			If (!$startTestHash)
 			{
 				$startTestHash = $global:currTestHash
